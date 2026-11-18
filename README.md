@@ -1,6 +1,6 @@
 # Socratic mode
 
-Maieutic mode for [Claude Code](https://code.claude.com) and [OpenCode ≥ 2.x](https://opencode.ai) following this study from [Stanford](https://scale.stanford.edu/ai/repository/beyond-automation-socratic-ai-epistemic-agency-and-implications-emergence-orchestrated-multi-agent-learning-architectures).
+Maieutic behavior for [Claude Code](https://code.claude.com) and [OpenCode ≥ 2.x](https://opencode.ai) following this study from [Stanford](https://scale.stanford.edu/ai/repository/beyond-automation-socratic-ai-epistemic-agency-and-implications-emergence-orchestrated-multi-agent-learning-architectures).
 Instead of answering directly, the agent pushes you to reason and reach the answer yourself, with a ~~cheeky and insufferable~~ thought-provoking tone.
 
 ## BUT WHY???
@@ -8,7 +8,9 @@ If you're tired of having a sycophantic muppet regurgitating text and making ref
 Money-back guarantee! (It's free.)
 
 This is my personal answer for ai-assisted learning and is what I would try to give to junior devs if I had any to manage.
-### Grounding
+It's also a good response to shadow AI in my opinion, better to provide a tool that helps you learn rather than let the employees paste code randomly in a free chatbot.
+
+## Grounding
 The agent will check your code, the documentation and the web, then guides you to answers with questions, provocations and sources to read yourself.
 But why stop there? Use it on research. Use it to decide which furniture you'd like in your basement!
 Would not advise using it on what to wear, you are already stunning, you little critter you, stop second guessing yourself.
