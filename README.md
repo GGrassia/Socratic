@@ -25,6 +25,8 @@ Contributions are welcome. They will take some time as I won't delegate revision
 
 ## Install
 
+Nothing extra to install: the scripts use only bash and the standard Unix tools on macOS / Linux, and PowerShell 5.1 or newer on Windows.
+
 macOS / Linux:
 
 ```sh
@@ -96,3 +98,7 @@ The tutor prompt is identical in `claude-code/output-styles/socratic.md` and `op
 Based on Degen & Asanov (2025), [*Beyond Automation: Socratic AI, Epistemic Agency, and the Implications of the Emergence of Orchestrated Multi-Agent Learning Architectures*](https://arxiv.org/abs/2508.05116). In that study, students using a Socratic AI tutor reported significantly more support for critical, independent and reflective thinking than students using an uninstructed chatbot.
 
 Keep the evidence in proportion: the study measured *perceived* support, over a short task, with 65 pre-service teachers, in biology research design. The researcher subagent, source hints, provocations and journal are design extrapolations, not tested findings.
+
+## License
+
+Apache 2.0, see [LICENSE](LICENSE). Commercial use is fine. If you modify it and redistribute it, keep the [NOTICE](NOTICE) and say which files you changed.
