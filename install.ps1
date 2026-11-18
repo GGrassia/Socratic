@@ -32,8 +32,13 @@ function Copy-Tree([string]$From, [string]$To) {
       $mine = (Get-FileHash -LiteralPath $target -Algorithm SHA256).Hash
       $theirs = (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash
       if ($mine -ne $theirs) {
-        Copy-Item -LiteralPath $target -Destination "$target.bak" -Force
-        Write-Host "  kept your edited $rel as $rel.bak"
+        # Never overwrite an older backup: a second edit would destroy the first one.
+        if (Test-Path -LiteralPath "$target.bak") {
+          Write-Host "  replaced your edited $rel; older copy still in $rel.bak"
+        } else {
+          Copy-Item -LiteralPath $target -Destination "$target.bak" -Force
+          Write-Host "  kept your edited $rel as $rel.bak"
+        }
       }
     }
     Copy-Item -LiteralPath $_.FullName -Destination $target -Force
@@ -61,6 +66,16 @@ function Get-PromptBody([string]$Path, [string]$CutAt) {
 function Assert-PromptsInSync([string]$Left, [string]$Right, [string]$CutAt) {
   $a = Get-PromptBody $Left $CutAt
   $b = Get-PromptBody $Right $CutAt
+  # Two empty bodies compare equal, which would hide broken frontmatter or a missing
+  # cut marker instead of catching it.
+  if ($a.Count -eq 0 -or $b.Count -eq 0) {
+    Write-Host ''
+    Write-Host 'Empty prompt body, refusing to continue:' -ForegroundColor Red
+    Write-Host "  $Left"
+    Write-Host "  $Right"
+    Write-Host 'Check the frontmatter and the cut marker in both files.' -ForegroundColor Red
+    exit 1
+  }
   $same = $a.Count -eq $b.Count
   if ($same) {
     for ($i = 0; $i -lt $a.Count; $i++) {
@@ -96,16 +111,35 @@ Assert-PromptsInSync (Join-Path $claudeSrc 'skills\reflect\SKILL.md') (Join-Path
 
 if ($Target -in 'all', 'claude') {
   $dest = if ($env:CLAUDE_CONFIG_DIR) { $env:CLAUDE_CONFIG_DIR } else { Join-Path $HOME '.claude' }
-  Copy-Tree (Join-Path $here 'claude-code') $dest
 
   # The /socratic skill normally resolves the config dir at load time with a bash
   # injection. On Windows that injection runs in Git Bash by default, but in
   # PowerShell when CLAUDE_CODE_USE_POWERSHELL_TOOL=1, where the bash syntax breaks.
   # Bake in the resolved path instead, so it works with either shell.
-  $skill = [System.IO.Path]::Combine($dest, 'skills', 'socratic', 'SKILL.md')
+  # Because of that rewrite the installed copy never matches the shipped one, so
+  # Copy-Tree skips it; a user edit is still caught here, against the baked text.
+  $skillSrc = Join-Path $claudeSrc 'skills\socratic\SKILL.md'
+  $skillDst = [System.IO.Path]::Combine($dest, 'skills', 'socratic', 'SKILL.md')
+  $baked = [regex]::Replace([System.IO.File]::ReadAllText($skillSrc), '(?m)^Claude config directory: !`.*`(\r?)$',
+    { param($m) "Claude config directory: $dest" + $m.Groups[1].Value })
+  if ((Test-Path -LiteralPath $skillDst) -and ([System.IO.File]::ReadAllText($skillDst) -cne $baked)) {
+    if (Test-Path -LiteralPath "$skillDst.bak") {
+      Write-Host '  replaced your edited skills\socratic\SKILL.md; older copy still in SKILL.md.bak'
+    } else {
+      Copy-Item -LiteralPath $skillDst -Destination "$skillDst.bak" -Force
+      Write-Host '  kept your edited skills\socratic\SKILL.md as SKILL.md.bak'
+    }
+  }
+
+  Copy-Tree $claudeSrc $dest
+
+  $skill = $skillDst
   $text = [System.IO.File]::ReadAllText($skill)
   $text = [regex]::Replace($text, '(?m)^Claude config directory: !`.*`(\r?)$',
     { param($m) "Claude config directory: $dest" + $m.Groups[1].Value })
+  if (-not $text.Contains("Claude config directory: $dest")) {
+    Write-Host "  Warning: could not bake the config path into $skill; /socratic may not work." -ForegroundColor Yellow
+  }
   [System.IO.File]::WriteAllText($skill, $text, $utf8NoBom)
 
   Write-Host "Claude Code: installed in $dest (pick 'Socratic' in /config, or type /socratic)"

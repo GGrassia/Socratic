@@ -70,7 +70,7 @@ Both create `~/socratic-journal/` for `/reflect` entries. Re-run the installer t
 3. Meanwhile, the main agent asks you to describe what you think is happening and why. This offers you the fantastic rubber-ducking approach to the problem, I'd bet this is 80% of the value of this.
 4. Once the key is in, it steers with one question at a time, using a hint ladder: question → focus → a source to read → mechanism → parallel example → answer with sources. Say "hint" to climb a rung; ask for the answer twice and you get it (don't do it man, just don't do it).
 
-It *should* never feign ignorance, say something false to test you, and *shouldn't* do the work for you. In OpenCode, file edits are blocked by the agent's permissions, except for the journal. In Claude Code this is an instruction only, since output styles can't restrict tools. In OpenCode, shell commands always ask; only git status, git diff and ls run automatically.
+It *should* never feign ignorance, say something false to test you, and *shouldn't* do the work for you. In OpenCode, file edits are blocked by the agent's permissions, except for the journal. In Claude Code this is an instruction only, since output styles can't restrict tools. In OpenCode, every shell command asks for approval except `git status`, `git diff` and `ls`, which run on their own.
 
 ## Layout
 

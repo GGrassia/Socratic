@@ -19,10 +19,15 @@ copy_tree() {
     rel="${rel#./}"
     src="$1/$rel"; dst="$2/$rel"
     mkdir -p "$(dirname "$dst")"
-    # Keep whatever the person customised before we overwrite it.
+    # Keep whatever the person customised before we overwrite it. Never overwrite an
+    # older backup: a second edit would otherwise destroy the first one.
     if [ -f "$dst" ] && ! cmp -s "$src" "$dst"; then
-      cp "$dst" "$dst.bak"
-      echo "  kept your edited $rel as $rel.bak"
+      if [ -f "$dst.bak" ]; then
+        echo "  replaced your edited $rel; older copy still in $rel.bak"
+      else
+        cp "$dst" "$dst.bak"
+        echo "  kept your edited $rel as $rel.bak"
+      fi
     fi
     cp "$src" "$dst"
   done
@@ -34,6 +39,7 @@ copy_tree() {
 prompt_body() {
   awk -v cut="$2" '
     { sub(/\r$/, "") }
+    NR == 1 { sub(/^\357\273\277/, "") }
     NR == 1 && $0 == "---" { front = 1; next }
     front { if ($0 == "---") front = 0; next }
     cut != "" && $0 == cut { exit }
@@ -50,6 +56,17 @@ assert_in_sync() {
   tmp="$(mktemp -d)"
   prompt_body "$left" "$cut" > "$tmp/left"
   prompt_body "$right" "$cut" > "$tmp/right"
+  # Two empty bodies compare equal, which would hide broken frontmatter or a missing
+  # cut marker instead of catching it.
+  if [ ! -s "$tmp/left" ] || [ ! -s "$tmp/right" ]; then
+    echo "" >&2
+    echo "Empty prompt body, refusing to continue:" >&2
+    echo "  $left" >&2
+    echo "  $right" >&2
+    echo "Check the frontmatter and the cut marker in both files." >&2
+    rm -rf "$tmp"
+    exit 1
+  fi
   if cmp -s "$tmp/left" "$tmp/right"; then
     echo "  prompt in sync: $(basename "$left")"
   else
